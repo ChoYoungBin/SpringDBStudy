@@ -1,7 +1,8 @@
 package hello.jdbc.service;
 
 import hello.jdbc.domain.Member;
-import hello.jdbc.repository.MemberRepositoryV3;
+import hello.jdbc.repository.MemberRepository;
+import hello.jdbc.repository.MemberRepositoryV4_1;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,14 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
-import static hello.jdbc.connection.ConnectionConst.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.aop.support.AopUtils.isAopProxy;
@@ -27,39 +23,39 @@ import static org.springframework.aop.support.AopUtils.isAopProxy;
  */
 @Slf4j
 @SpringBootTest
-class MemberServiceV4_4Test {
+class MemberServiceV4Test {
 
     public static final String MEMBER_A = "memberA";
     public static final String MEMBER_B = "memberB";
     public static final String MEMBER_EX = "ex";
 
     @Autowired
-    private MemberRepositoryV3 memberRepository;
+    private MemberRepository memberRepository;
     @Autowired
-    private MemberServiceV3_3 memberService;
+    private MemberServiceV4 memberService;
 
     @TestConfiguration
-    static class TestConfig{
+    static class TestConfig {
 
         private final DataSource dataSource;
 
-        public TestConfig(DataSource dataSource){
+        public TestConfig(DataSource dataSource) {
             this.dataSource = dataSource;
         }
 
         @Bean
-        MemberRepositoryV3 memberRepositoryV3(){
-            return new MemberRepositoryV3(dataSource);
+        MemberRepository memberRepositoryV4() {
+            return new MemberRepositoryV4_1(dataSource);
         }
 
         @Bean
-        MemberServiceV3_3 memberServiceV3_3(){
-            return new MemberServiceV3_3(memberRepositoryV3());
+        MemberServiceV4 memberServiceV4() {
+            return new MemberServiceV4(memberRepositoryV4());
         }
     }
 
     @Test
-    void AopCheck(){
+    void AopCheck() {
         log.info("memberService Class ={}", memberService.getClass());
         log.info("memberRepository Class ={}", memberRepository.getClass());
 
@@ -70,7 +66,7 @@ class MemberServiceV4_4Test {
 
     @Test
     @DisplayName("정상 이체")
-    void accountTransfer() throws SQLException {
+    void accountTransfer() {
         Member memberA = new Member(MEMBER_A, 10000);
         Member memberB = new Member(MEMBER_B, 10000);
         memberRepository.save(memberA);
@@ -90,7 +86,7 @@ class MemberServiceV4_4Test {
 
     @Test
     @DisplayName("예외 이체")
-    void accountTransferEx() throws SQLException {
+    void accountTransferEx() {
         Member memberA = new Member(MEMBER_A, 10000);
         Member memberEx = new Member(MEMBER_EX, 10000);
         memberRepository.save(memberA);
@@ -108,7 +104,7 @@ class MemberServiceV4_4Test {
     }
 
     @AfterEach
-    void after() throws SQLException {
+    void after() {
         memberRepository.delete(MEMBER_A);
         memberRepository.delete(MEMBER_B);
         memberRepository.delete(MEMBER_EX);
